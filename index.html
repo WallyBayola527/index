@@ -2,14 +2,18 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Interactive Gallery</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             overflow: hidden;
-            touch-action: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: black;
         }
         .gallery-container {
             width: 100vw;
@@ -23,14 +27,10 @@
             transition: transform 0.3s ease-out;
         }
         .gallery img {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            max-width: 100vw;
-            max-height: 100vh;
-            width: auto;
-            height: auto;
+            width: 100vw;
+            height: 100vh;
+            object-fit: contain; /* Ensures full image fits without cropping */
+            background-color: black;
         }
     </style>
 </head>
@@ -45,24 +45,59 @@
 </div>
 
 <script>
-    function adjustImages() {
-        const images = document.querySelectorAll(".gallery img");
-        images.forEach(img => {
-            const aspectRatio = img.naturalWidth / img.naturalHeight;
-            const screenRatio = window.innerWidth / window.innerHeight;
+    const gallery = document.querySelector(".gallery");
+    let currentIndex = 0;
+    let startX = 0;
+    let isAnimating = false;
+
+    document.addEventListener("touchstart", (e) => {
+        startX = e.touches[0].clientX;
+    });
+
+    document.addEventListener("touchend", (e) => {
+        let endX = e.changedTouches[0].clientX;
+        if (endX < startX - 50) {
+            nextImage();
+        } else if (endX > startX + 50) {
+            prevImage();
+        }
+    });
+
+    function animateGallery(targetIndex) {
+        if (isAnimating) return;
+        isAnimating = true;
+        
+        let start = performance.now();
+        let initialPosition = -currentIndex * window.innerWidth;
+        let targetPosition = -targetIndex * window.innerWidth;
+        
+        function animate(time) {
+            let progress = Math.min((time - start) / 300, 1);
+            let ease = progress * (2 - progress); // Smooth easing
+            gallery.style.transform = `translateX(${initialPosition + (targetPosition - initialPosition) * ease}px)`;
             
-            if (aspectRatio > screenRatio) {
-                img.style.width = "100vw";
-                img.style.height = "auto";
+            if (progress < 1) {
+                requestAnimationFrame(animate);
             } else {
-                img.style.width = "auto";
-                img.style.height = "100vh";
+                isAnimating = false;
+                currentIndex = targetIndex;
             }
-        });
+        }
+
+        requestAnimationFrame(animate);
     }
 
-    window.addEventListener("resize", adjustImages);
-    window.addEventListener("load", adjustImages);
+    function nextImage() {
+        if (currentIndex < gallery.children.length - 1) {
+            animateGallery(currentIndex + 1);
+        }
+    }
+
+    function prevImage() {
+        if (currentIndex > 0) {
+            animateGallery(currentIndex - 1);
+        }
+    }
 </script>
 
 </body>
