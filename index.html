@@ -25,7 +25,10 @@
             width: 100vw;
             height: 100vh;
             object-fit: cover;
-            transition: object-fit 0.3s ease-in-out;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
         }
     </style>
 </head>
@@ -40,17 +43,22 @@
 </div>
 
 <script>
-    const images = document.querySelectorAll(".gallery img");
-
-    images.forEach(img => {
-        img.onload = () => {
-            if (img.naturalHeight > img.naturalWidth) {
-                img.style.objectFit = "contain";
+    function adjustImages() {
+        const images = document.querySelectorAll(".gallery img");
+        images.forEach(img => {
+            if (window.innerHeight > window.innerWidth) {
+                img.style.width = "auto";
+                img.style.height = "100vh";
             } else {
-                img.style.objectFit = "cover";
+                img.style.width = "100vw";
+                img.style.height = "auto";
             }
-        };
-    });
+        });
+    }
+
+    window.addEventListener("resize", adjustImages);
+    window.addEventListener("load", adjustImages);
 </script>
+
 </body>
 </html>
